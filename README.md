@@ -1,1 +1,7 @@
-side zsh config for experimental and maybe future use as of Monday, April 29, 2024, 00:21:54
+# Personal zshrc
+
+as of Thursday, May 09, 2024, 00:10:32
+
+...
+
+still updating this thing as I go. def gonna be some weird stuff in here so ye
