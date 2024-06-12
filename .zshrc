@@ -16,10 +16,6 @@
 	#wine crap
 		alias kakao="wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Kakao/KakaoTalk/KakaoTalk.exe"
 
-	#Goofy ah aliases
-		alias please="sudo"
-		alias PLEASE="doas"
-
 	#NVIM EVERYTHING!!!!
 		alias edit="nvim"
 		alias nvimzsh="nvim ~/.zshrc"
@@ -92,6 +88,7 @@
 	SAVEHIST=100000
 	HISTSIZE=100000
 	HISTFILE=~/.zhistory
+	function clearhistory() { HISTSIZE=0; HISTSIZE=100000; }
 
 	REPORTTIME=1 #seconds
 	REPORTMEMORY=1024 #kilobytes
@@ -103,6 +100,8 @@
 ### PROMPT ###
 	autoload -Uz colors && colors
 
+	#"https://unix.stackexchange.com/questions/273529/shorten-path-in-zsh-prompt"
+	#"https://stackoverflow.com/questions/30323993/zsh-shorten-length-of-current-path"
 	#"https://unix.stackexchange.com/questions/451519/how-to-check-if-the-current-shell-session-is-in-the-gui-or-the-tty"
 	case $(tty) in 
 		(/dev/tty[1-9])
@@ -150,7 +149,23 @@
 				PROMPT_gear=""
 				PROMPT_archlinux="󰣇"
 
-				PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
+				#"https://stackoverflow.com/questions/69687223/how-to-colour-git-branch-name-in-zsh-prompt/69700413#69700413"
+				#"https://stackoverflow.com/questions/36192523/zsh-prompt-customization"
+				autoload -Uz add-zsh-hook
+				pwdprecmd()
+				{
+					if [ "$HOME" != "$PWD" ]; then
+						pwdprecmdtemp=$(echo $PWD | sed "s|"$HOME"|\~|")
+						psvar[1]=$(printf "%.2s/" ${(s./.)pwdprecmdtemp:h})${pwdprecmdtemp:t}
+					else
+						psvar[1]="~"
+					fi
+				}
+				add-zsh-hook precmd pwdprecmd
+
+				setopt PROMPT_SUBST #"https://unix.stackexchange.com/questions/701806/how-to-get-a-shorter-path-prompt-in-powerline10k-zsh"
+				#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
+				PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %v %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
 				#PROMPT="%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username no archlinux logo
 				#PROMPT="[%F{green}%~%f] %# " #don't include username
 
@@ -213,8 +228,10 @@
 
 	#tab completion menu keybinds
 		autoload -Uz compinit && compinit
-		#zstyle ":completion:*" menu select
+		#zstyle ':completion:*:default' list-colors '=(#b)*(XX *)=32=31' '=*=32'
 		zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
+		zstyle ':completion:*' menu select
+		zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' ### case insensitive path-completion  #ripped from "https://scriptingosx.com/2019/07/moving-to-zsh-part-5-completions/"
 		zmodload zsh/complist
 		_comp_options+=(globdots)
 
@@ -227,9 +244,6 @@
 		bindkey "^[[Z" reverse-menu-complete
 
 
-#case insensitive path-completion  #ripped from "https://scriptingosx.com/2019/07/moving-to-zsh-part-5-completions/"
-#zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 
-#zstyle ':completion:*:default' list-colors '=(#b)*(XX *)=32=31' '=*=32'
 
 
 
