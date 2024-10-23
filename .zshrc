@@ -49,6 +49,19 @@
 		function cpfzf() { cp -iv "$(fzf)" "$1" }
 		function mvfzf() { mv -iv "$(fzf)" "$1" }
 
+		function cdfzf()
+		{
+			local filepath=$(fzf)
+			local truncatethispart=$(echo $filepath | grep -o -- '/[^/]*$')
+			filepath="${filepath%$truncatethispart}/"
+
+			cd $filepath
+
+			#paranoia
+			unset filepath
+			unset truncatethispart
+		}
+
 	#CD Shortcuts
 		alias cdnvim="cd ~/.config/nvim" #easier and faster to type letters and not "special chars" ya know?
 		alias cddiscord="cd /opt/discord/resources/" #faster way to update discord idk
@@ -62,8 +75,16 @@
 
 	#Shortcut Commands To Long Bois
 		alias yt-dlpAUDIO="yt-dlp --extract-audio --audio-format mp3 --write-sub --embed-thumbnail --embed-metadata --retries 3" #personal preferred settings
-		alias yt-dlpVIDEO="yt-dlp --format mp4 --embed-metadata" #personal preferred settings
-		alias yt-dlpMP4="yt-dlp --format mp4 --embed-metadata" #personal preferred settings
+		alias yt-dlpVIDEO="yt-dlp --format mp4 --embed-metadata --retries 3" #personal preferred settings
+
+		function videoplusaudio()
+		{
+			#"https://superuser.com/questions/590201/add-audio-to-video-using-ffmpeg"
+			#$1 should be .mp4 or video
+			#$2 should be .mp3 or audio
+			#$3 should be .mp4 or output video
+			ffmpeg -i $1 -i $2 -c copy -map 0:v:0 -map 1:a:0 $3
+		}
 		
 	#Run Custom Written Binaries
 		alias permutate="$HOME/coding/binaries/permutate/permutate"
@@ -85,6 +106,7 @@
 ### BASIC OPTIONS ###
 	setopt HIST_APPEND #APPEND_HISTORY
 	setopt HISTIGNORESPACE #Ignore commands that start with a space and don't append to history
+	#setopt SHARE_HISTORY #share history across different/multiple zsh sessions open #will add the weird numba thingies to history that disappear after reloading user
 	SAVEHIST=100000
 	HISTSIZE=100000
 	HISTFILE=~/.zhistory
@@ -95,7 +117,17 @@
 
 	KEYTIMEOUT=1
 
-	unsetopt BEEP #no annoying beep sounds
+	#no annoying beep sounds
+	unsetopt BEEP 
+	setopt NOBEEP
+
+	#command corrections
+	setopt CORRECT #command name correction
+	unsetopt CORRECT_ALL #correction for the rest of the command after the command name
+
+	#prompt expansion
+	setopt PROMPT_SUBST #"https://unix.stackexchange.com/questions/701806/how-to-get-a-shorter-path-prompt-in-powerline10k-zsh"
+	setopt TRANSIENT_RPROMPT #RPROMPT follows you and isnt left behind in previous command
 
 ### PROMPT ###
 	autoload -Uz colors && colors
@@ -110,8 +142,6 @@
 				PROMPT="[%F{red}%n%f] %F{cyan}%~%f %# " #include username
 				#PROMPT="[%F{green}%~%f] %# " #don't include username
 
-				setopt CORRECT
-				setopt CORRECT_ALL
 				#SPROMPT="zsh: correct '%R' to '%r' [nyae]? " #default prompt
 				SPROMPT="zsh: correct '%R' to '%r' [nyae]? "
 
@@ -120,9 +150,10 @@
 				RPROMPT_COMMANDSTATUS_126="%(126?.%? %F{red}bad perms!%f." #executable file has insufficient permissions
 				RPROMPT_COMMANDSTATUS_127="%(127?.%? %F{red}not found!%f." #command not found!
 				RPROMPT_COMMANDSTATUS_130="%(130?.%? %F{red}cbreak!%f." #ctrl-c, abort
+				RPROMPT_COMMANDSTATUS_139="%(139?.%? %F{red}cbreak!%f." #segmentation fault (segv)
 				RPROMPT_COMMANDSTATUS_148="%(148?.%? %F{red}zbreak!%f." #ctrl-z, suspend
 				RPROMPT_COMMANDSTATUS_END="%? %F{red}wut?%f)))))" #idk what error code you're giving me lol
-				RPROMPT_COMMANDSTATUS="$RPROMPT_COMMANDSTATUS_0$RPROMPT_COMMANDSTATUS_126$RPROMPT_COMMANDSTATUS_127$RPROMPT_COMMANDSTATUS_130$RPROMPT_COMMANDSTATUS_148$RPROMPT_COMMANDSTATUS_END"
+				RPROMPT_COMMANDSTATUS="$RPROMPT_COMMANDSTATUS_0$RPROMPT_COMMANDSTATUS_126$RPROMPT_COMMANDSTATUS_127$RPROMPT_COMMANDSTATUS_130$RPROMPT_COMMANDSTATUS_139$RPROMPT_COMMANDSTATUS_148$RPROMPT_COMMANDSTATUS_END"
 
 				RPROMPT_JOBSTATUS="%(1j.%(2j. [%F{cyan}%j jobs%f]. [%F{cyan}%j job%f]). )"
 
@@ -137,7 +168,6 @@
 				zle -N zle-keymap-select
 
 				RPROMPT="$RPROMPT_COMMANDSTATUS$RPROMPT_JOBSTATUS$RPROMPT_VISTATUS"
-				setopt TRANSIENT_RPROMPT #RPROMPT follows you and isnt left behind in previous command
 		;;
 
 		(*)
@@ -155,22 +185,26 @@
 				pwdprecmd()
 				{
 					if [ "$HOME" != "$PWD" ]; then
-						pwdprecmdtemp=$(echo $PWD | sed "s|"$HOME"|\~|")
-						psvar[1]=$(printf "%.2s/" ${(s./.)pwdprecmdtemp:h})${pwdprecmdtemp:t}
+						local pwdprecmdtemp=$(echo $PWD | sed "s|"$HOME"|\~|")
+
+						#psvar[1]=$(printf "%.2s/" ${(s./.)pwdprecmdtemp%/*})${pwdprecmdtemp##*/}
+						#psvar[1]=$(printf "%.2s/" ${(s./.)pwdprecmdtemp:h})${pwdprecmdtemp:t}
+
+						psvar[1]=$(printf "%.2s/" ${(s./.)pwdprecmdtemp:h})
+						psvar[2]=${pwdprecmdtemp:t}
 					else
 						psvar[1]="~"
+						psvar[2]=""
 					fi
 				}
 				add-zsh-hook precmd pwdprecmd
 
-				setopt PROMPT_SUBST #"https://unix.stackexchange.com/questions/701806/how-to-get-a-shorter-path-prompt-in-powerline10k-zsh"
 				#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
-				PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %v %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
+				#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{027}%F{234}$PROMPT_tri_right%f %v %k%F{027}$PROMPT_tri_right%f " #no username and archlinux logo
+				PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username and archlinux logo
 				#PROMPT="%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username no archlinux logo
 				#PROMPT="[%F{green}%~%f] %# " #don't include username
 
-				setopt CORRECT
-				setopt CORRECT_ALL
 				#SPROMPT="zsh: correct '%R' to '%r' [nyae]? " #default prompt
 				SPROMPT="zsh: correct '%R' to '%r' [nyae]? "
 
@@ -179,9 +213,10 @@
 				RPROMPT_COMMANDSTATUS_126="%(126?.%F{black}$PROMPT_tri_left%f%K{black}%F{white} %? %f%k%K{black}%F{160}$PROMPT_tri_left%f%k%K{160}%F{white} bad perms! %f%(1j.%K{160}%F{075}$PROMPT_tri_left%f%k.)." #executable file has insufficient permissions
 				RPROMPT_COMMANDSTATUS_127="%(127?.%F{black}$PROMPT_tri_left%f%K{black}%F{white} %? %f%k%K{black}%F{160}$PROMPT_tri_left%f%k%K{160}%F{white} not found! %f%(1j.%K{160}%F{075}$PROMPT_tri_left%f%k.)." #command not found!
 				RPROMPT_COMMANDSTATUS_130="%(130?.%F{black}$PROMPT_tri_left%f%K{black}%F{white} %? %f%k%K{black}%F{160}$PROMPT_tri_left%f%k%K{160}%F{white} cbreak! %f%(1j.%K{160}%F{075}$PROMPT_tri_left%f%k.)." #ctrl-c, abort
+				RPROMPT_COMMANDSTATUS_139="%(139?.%F{black}$PROMPT_tri_left%f%K{black}%F{white} %? %f%k%K{black}%F{160}$PROMPT_tri_left%f%k%K{160}%F{white} segv! %f%(1j.%K{160}%F{075}$PROMPT_tri_left%f%k.)." #segmentation fault (segv)
 				RPROMPT_COMMANDSTATUS_148="%(148?.%F{black}$PROMPT_tri_left%f%K{black}%F{white} %? %f%k%K{black}%F{160}$PROMPT_tri_left%f%k%K{160}%F{white} zbreak! %f%(1j.%K{160}%F{075}$PROMPT_tri_left%f%k.)." #ctrl-z, suspend
-				RPROMPT_COMMANDSTATUS_END="%F{black}$PROMPT_tri_left%f%K{black}%F{white} %? %f%k%K{black}%F{160}$PROMPT_tri_left%f%k%K{160}%F{white} wut? %f%(1j.%K{160}%F{075}$PROMPT_tri_left%f%k.))))))" #idk what error code you're giving me lol
-				RPROMPT_COMMANDSTATUS="$RPROMPT_COMMANDSTATUS_0$RPROMPT_COMMANDSTATUS_126$RPROMPT_COMMANDSTATUS_127$RPROMPT_COMMANDSTATUS_130$RPROMPT_COMMANDSTATUS_148$RPROMPT_COMMANDSTATUS_END"
+				RPROMPT_COMMANDSTATUS_END="%F{black}$PROMPT_tri_left%f%K{black}%F{white} %? %f%k%K{black}%F{160}$PROMPT_tri_left%f%k%K{160}%F{white} wut? %f%(1j.%K{160}%F{075}$PROMPT_tri_left%f%k.)))))))" #idk what error code you're giving me lol
+				RPROMPT_COMMANDSTATUS="$RPROMPT_COMMANDSTATUS_0$RPROMPT_COMMANDSTATUS_126$RPROMPT_COMMANDSTATUS_127$RPROMPT_COMMANDSTATUS_130$RPROMPT_COMMANDSTATUS_139$RPROMPT_COMMANDSTATUS_148$RPROMPT_COMMANDSTATUS_END"
 
 				RPROMPT_JOBSTATUS="%(1j.%(2j.%K{075}%F{white} %j jobs $PROMPT_gear %f.%K{075}%F{white} %j job $PROMPT_gear %f).)"
 				#RPROMPT_JOBSTATUS="%(1j.%(2j. [%F{cyan}%j jobs%f]. [%F{cyan}%j job%f]). )"
@@ -197,7 +232,6 @@
 				zle -N zle-keymap-select
 
 				RPROMPT="$RPROMPT_COMMANDSTATUS$RPROMPT_JOBSTATUS$RPROMPT_VISTATUS"
-				setopt TRANSIENT_RPROMPT #RPROMPT follows you and isnt left behind in previous command
 
 				#get rid of stupid whitespace at the end of RPROMPT "https://superuser.com/questions/655607/removing-the-useless-space-at-the-end-of-the-right-prompt-of-zsh-rprompt"
 				ZLE_RPROMPT_INDENT=0
@@ -224,14 +258,22 @@
 		bindkey -a "^[[4~" vi-end-of-line
 
 		autoload edit-command-line; zle -N edit-command-line
-		bindkey "^v" edit-command-line
+		bindkey -M vicmd "^v" edit-command-line
 
 	#tab completion menu keybinds
 		autoload -Uz compinit && compinit
-		#zstyle ':completion:*:default' list-colors '=(#b)*(XX *)=32=31' '=*=32'
-		zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
-		zstyle ':completion:*' menu select
+		
+		#this is manually defined. can get with "dircolors"
+		#you can also just have a .dir_colors with "dircolors -p > ~/.dir_colors" and evaluate/source said file with 'eval "$(dircolors -b ~/.dircolors)"'
+		LS_COLORS='rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.7z=01;31:*.ace=01;31:*.alz=01;31:*.apk=01;31:*.arc=01;31:*.arj=01;31:*.bz=01;31:*.bz2=01;31:*.cab=01;31:*.cpio=01;31:*.crate=01;31:*.deb=01;31:*.drpm=01;31:*.dwm=01;31:*.dz=01;31:*.ear=01;31:*.egg=01;31:*.esd=01;31:*.gz=01;31:*.jar=01;31:*.lha=01;31:*.lrz=01;31:*.lz=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.lzo=01;31:*.pyz=01;31:*.rar=01;31:*.rpm=01;31:*.rz=01;31:*.sar=01;31:*.swm=01;31:*.t7z=01;31:*.tar=01;31:*.taz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tgz=01;31:*.tlz=01;31:*.txz=01;31:*.tz=01;31:*.tzo=01;31:*.tzst=01;31:*.udeb=01;31:*.war=01;31:*.whl=01;31:*.wim=01;31:*.xz=01;31:*.z=01;31:*.zip=01;31:*.zoo=01;31:*.zst=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:';
+		export LS_COLORS
+
+			#zstyle ':completion:*:default' list-colors '=(#b)*(XX *)=32=31' '=*=32'
+		zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}" #colored completion menu
+		zstyle ':completion:*' menu select #colored menu selection
 		zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' ### case insensitive path-completion  #ripped from "https://scriptingosx.com/2019/07/moving-to-zsh-part-5-completions/"
+			#zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' #Case insensitive tab completion
+		zstyle ':completion:*' rehash true #automatically find new executable in path
 		zmodload zsh/complist
 		_comp_options+=(globdots)
 
@@ -240,62 +282,55 @@
 		bindkey -M menuselect "k" vi-up-line-or-history
 		bindkey -M menuselect "l" vi-forward-char
 
-		bindkey "^I" menu-complete
-		bindkey "^[[Z" reverse-menu-complete
+		#man zshmodules
+		bindkey -M menuselect "^[" send-break
+		bindkey "^I" menu-complete #TAB
+		bindkey "^[[Z" reverse-menu-complete #SHIFT-TAB
 
+	#history search completion
+		eval "$(fzf --zsh)"
+		#bindkey -M isearch "^r" history-incremental-search-backward
+		bindkey -M isearch "^r" history-incremental-search-backward
 
+	#expand alias
+		bindkey "^Z" _expand_alias
 
+### COLORS ###
+	# Color man pages
+		export LESS_TERMCAP_mb=$'\E[01;32m'
+		export LESS_TERMCAP_md=$'\E[01;32m'
+		export LESS_TERMCAP_me=$'\E[0m'
+		export LESS_TERMCAP_se=$'\E[0m'
+		export LESS_TERMCAP_so=$'\E[01;47;34m'
+		export LESS_TERMCAP_ue=$'\E[0m'
+		export LESS_TERMCAP_us=$'\E[01;36m'
+		export LESS=-R
 
-
-
-
-
-
-
-
-#"
-#prompt_command_execution_time() {
-#  (( $+P9K_COMMAND_DURATION_SECONDS )) || return
-#  (( P9K_COMMAND_DURATION_SECONDS >= _POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD )) || return
-#
-#  if (( P9K_COMMAND_DURATION_SECONDS < 60 )); then
-#    if (( !_POWERLEVEL9K_COMMAND_EXECUTION_TIME_PRECISION )); then
-#      local -i sec=$((P9K_COMMAND_DURATION_SECONDS + 0.5))
-#    else
-#      local -F $_POWERLEVEL9K_COMMAND_EXECUTION_TIME_PRECISION sec=P9K_COMMAND_DURATION_SECONDS
-#    fi
-#    local text=${sec}s
-#  else
-#    local -i d=$((P9K_COMMAND_DURATION_SECONDS + 0.5))
-#    if [[ $_POWERLEVEL9K_COMMAND_EXECUTION_TIME_FORMAT == "H:M:S" ]]; then
-#      local text=${(l.2..0.)$((d % 60))}
-#      if (( d >= 60 )); then
-#        text=${(l.2..0.)$((d / 60 % 60))}:$text
-#        if (( d >= 36000 )); then
-#          text=$((d / 3600)):$text
-#        elif (( d >= 3600 )); then
-#          text=0$((d / 3600)):$text
-#        fi
-#      fi
-#    else
-#      local text="$((d % 60))s"
-#      if (( d >= 60 )); then
-#        text="$((d / 60 % 60))m $text"
-#        if (( d >= 3600 )); then
-#          text="$((d / 3600 % 24))h $text"
-#          if (( d >= 86400 )); then
-#            text="$((d / 86400))d $text"
-#          fi
-#        fi
-#      fi
-#    fi
-#  fi
-#
-#  _p9k_prompt_segment "$0" "red" "yellow1" 'EXECUTION_TIME_ICON' 0 '' $text
-#}
-#"
-
-
-### SOURCE PLUGINS AND WHAT NOT ###
-source $HOME/.config/zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
-source $HOME/.config/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null # must be sourced last to properly work
+							### Options section
+							#setopt correct                                                  # Auto correct mistakes
+							#setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
+							#setopt nocaseglob                                               # Case insensitive globbing
+							#setopt rcexpandparam                                            # Array expension with parameters
+							#setopt nocheckjobs                                              # Don't warn about running processes when exiting
+							#setopt numericglobsort                                          # Sort filenames numerically when it makes sense
+							#setopt nobeep                                                   # No beep
+							#setopt appendhistory                                            # Immediately append history instead of overwriting
+							#setopt histignorealldups                                        # If a new command is a duplicate, remove the older one
+							#setopt autocd                                                   # if only directory path is entered, cd there.
+							#setopt inc_append_history                                       # save commands are added to the history immediately, otherwise only when shell exits.
+							#setopt histignorespace                                          # Don't save commands that start with space
+							#
+							#zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' # Case insensitive tab completion
+							#zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"         # Colored completion (different colors for dirs/files/etc)
+							#zstyle ':completion:*' rehash true                              # automatically find new executables in path
+							#zstyle ':completion:*' menu select                              # Highlight menu selection
+							## Speed up completions
+							#zstyle ':completion:*' accept-exact '*(N)'
+							#zstyle ':completion:*' use-cache on
+							#zstyle ':completion:*' cache-path ~/.zsh/cache
+							#HISTFILE=~/.zhistory
+							#HISTSIZE=10000
+							#SAVEHIST=10000
+							##export EDITOR=/usr/bin/nano
+							##export VISUAL=/usr/bin/nano
+							#WORDCHARS=${WORDCHARS//\/[&.;]}                                 # Don't consider certain characters part of the word
