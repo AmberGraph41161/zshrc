@@ -85,6 +85,11 @@
 			#$3 should be .mp4 or output video
 			ffmpeg -i $1 -i $2 -c copy -map 0:v:0 -map 1:a:0 $3
 		}
+
+		function videotogif()
+		{
+			ffmpeg -i $i -vf "fps=10,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 $2
+		}
 		
 	#Run Custom Written Binaries
 		alias permutate="$HOME/coding/binaries/permutate/permutate"
