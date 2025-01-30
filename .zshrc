@@ -1,17 +1,6 @@
 ### CUSTOM ALIASES ###
 	#wayland crap
 		alias forcexwayland="env -u WAYLAND_DISPLAY --" # so I can get fcitx crap to work
-		#function fcitxcopy()
-		#{
-		#	alacritty -e\
-		#		function fcitxcopyembedfunction()\
-		#		{\
-		#			unset WAYLAND_DISPLAY;\
-		#			read tempfcitxcopyvar;\
-		#			echo $tempfcitxcopyvar | wl-copy;\
-		#			unset tempfcitxcopyvar;\
-		#		}; fcitxcopyembedfunction;
-		#}
 	
 	#wine crap
 		alias kakao="wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Kakao/KakaoTalk/KakaoTalk.exe"
@@ -20,7 +9,7 @@
 		alias edit="nvim"
 		alias nvimzsh="nvim ~/.zshrc"
 		alias nvims="nvim -S session.vim"
-		alias bruh="tmux -u" #"-u" flag unsures that UTF-8 or UNICODE characters print out
+		alias bruh="tmux -u2" #"-u" flag unsures that UTF-8 or UNICODE characters print out
 
 		alias ok="nvim ~/.zshrc"
 		alias no="source ~/.zshrc"
@@ -43,23 +32,26 @@
 		alias lsd="find . -maxdepth 1 -type d"
 		alias cls="clear"
 
-		alias mixer="alsamixer"
-
 		function rmfzf() { rm -iv "$(fzf)" }
 		function cpfzf() { cp -iv "$(fzf)" "$1" }
 		function mvfzf() { mv -iv "$(fzf)" "$1" }
 
+		#deprecated
+		#function cdfzf()
+		#{
+		#	local filepath=$(fzf)
+		#	local truncatethispart=$(echo $filepath | grep -o -- '/[^/]*$')
+		#	filepath="${filepath%$truncatethispart}/"
+
+		#	cd $filepath
+
+		#	#paranoia
+		#	unset filepath
+		#	unset truncatethispart
+		#}
 		function cdfzf()
 		{
-			local filepath=$(fzf)
-			local truncatethispart=$(echo $filepath | grep -o -- '/[^/]*$')
-			filepath="${filepath%$truncatethispart}/"
-
-			cd $filepath
-
-			#paranoia
-			unset filepath
-			unset truncatethispart
+			cd ${$(fzf)%/*}
 		}
 
 	#CD Shortcuts
@@ -88,24 +80,36 @@
 
 		function videotogif()
 		{
-			ffmpeg -i $i -vf "fps=10,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 $2
+			ffmpeg -i $1 -vf "fps=30,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 $2
+			# loop:
+			# -1 no looping
+			# 0 infinite looping
+			# 1 loop once (play twice)
+			# 10 (play 11 times)
+		}
+
+		function ffmpegtrimvideo()
+		{
+			#"https://stackoverflow.com/questions/18444194/cutting-multimedia-files-based-on-start-and-end-time-using-ffmpeg"
+
+			# input, start, end, output
+			#ffmpeg -i $1 -ss $2 -to $3 -c copy $4 #this doesn't work
+			ffmpeg -ss $2 -to $3 -i $1 -c copy $4 #this works
+		}
+
+		function catintosatty()
+		{
+			cat $1 | satty --early-exit --copy-command 'wl-copy' --disable-notifications --filename -
 		}
 		
-	#Run Custom Written Binaries
-		alias permutate="$HOME/coding/binaries/permutate/permutate"
-		alias rbv="$HOME/coding/binaries/RBV/RBV"
-		alias rgb="$HOME/coding/binaries/betterSFMLrgb/main"
 
 	#SHRED THE EVIDENCE HIDE THE EVIDENCE KILL THE EVIDENCE GET RID OF THE EVIDENCE
 		alias shredshred="shred -fuzv"
 		alias shredshredshred="shred -fuzvn10"
 
 	#rice long bois
-		alias neofetch="neofetch | lolcat" #RGB go BRRRRRR
 		alias pipes="pipes.sh -p 10 -t 1 -r 10000 -R"
 		alias music="ncmpcpp"
-		alias musicc="$HOME/.ncmpcpp/ncmpcpp-ueberzug"
-		#alias chararbv="chara say "$(rbv)" | lolcat"
 		alias pokemon="krabby random | sed \"1,1d\""
 
 ### BASIC OPTIONS ###
@@ -144,8 +148,13 @@
 		(/dev/tty[1-9])
 		### SIMPLE PROMPT ###
 			#LEFT PROMPT
-				PROMPT="[%F{red}%n%f] %F{cyan}%~%f %# " #include username
-				#PROMPT="[%F{green}%~%f] %# " #don't include username
+				if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_TTY" ]; then
+					PROMPT="[%F{red}%n%f][%F{orange}SSH%f] %F{cyan}%~%f %# " #include username
+					#PROMPT="[%F{cyan}%~%f][%F{white}SSH%f] %# " #don't include username
+				else
+					PROMPT="[%F{red}%n%f] %F{cyan}%~%f %# " #include username
+					#PROMPT="[%F{cyan}%~%f] %# " #don't include username
+				fi
 
 				#SPROMPT="zsh: correct '%R' to '%r' [nyae]? " #default prompt
 				SPROMPT="zsh: correct '%R' to '%r' [nyae]? "
@@ -157,7 +166,7 @@
 				RPROMPT_COMMANDSTATUS_130="%(130?.%? %F{red}cbreak!%f." #ctrl-c, abort
 				RPROMPT_COMMANDSTATUS_139="%(139?.%? %F{red}cbreak!%f." #segmentation fault (segv)
 				RPROMPT_COMMANDSTATUS_148="%(148?.%? %F{red}zbreak!%f." #ctrl-z, suspend
-				RPROMPT_COMMANDSTATUS_END="%? %F{red}wut?%f)))))" #idk what error code you're giving me lol
+				RPROMPT_COMMANDSTATUS_END="%? %F{red}wut?%f))))))" #idk what error code you're giving me lol
 				RPROMPT_COMMANDSTATUS="$RPROMPT_COMMANDSTATUS_0$RPROMPT_COMMANDSTATUS_126$RPROMPT_COMMANDSTATUS_127$RPROMPT_COMMANDSTATUS_130$RPROMPT_COMMANDSTATUS_139$RPROMPT_COMMANDSTATUS_148$RPROMPT_COMMANDSTATUS_END"
 
 				RPROMPT_JOBSTATUS="%(1j.%(2j. [%F{cyan}%j jobs%f]. [%F{cyan}%j job%f]). )"
@@ -173,6 +182,8 @@
 				zle -N zle-keymap-select
 
 				RPROMPT="$RPROMPT_COMMANDSTATUS$RPROMPT_JOBSTATUS$RPROMPT_VISTATUS"
+
+				ZLE_RPROMPT_INDENT=0
 		;;
 
 		(*)
@@ -204,11 +215,25 @@
 				}
 				add-zsh-hook precmd pwdprecmd
 
-				#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
-				#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{027}%F{234}$PROMPT_tri_right%f %v %k%F{027}$PROMPT_tri_right%f " #no username and archlinux logo
-				PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username and archlinux logo
-				#PROMPT="%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username no archlinux logo
-				#PROMPT="[%F{green}%~%f] %# " #don't include username
+
+				if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_TTY" ]; then
+					#pstree -s $$
+					#SSH_CLIENT
+					#SSH_CONNECTION
+					#SSH_TTY
+
+					PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{234}%F{white}$PROMPT_tri_right%F{white}%B SSH %b%f%k%K{033}%F{234}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username
+					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{027}%F{white}$PROMPT_tri_right%f %n %k%K{234}%F{027}$PROMPT_tri_right%F{white}%B SSH %b%f%k%K{033}%F{234}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #username
+				else
+					#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
+					#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{027}%F{234}$PROMPT_tri_right%f %v %k%F{027}$PROMPT_tri_right%f " #no username and archlinux logo
+					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username and archlinux logo
+					#PROMPT="%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username no archlinux logo
+					#PROMPT="[%F{green}%~%f] %# " #don't include username
+
+					PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username
+					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{027}%F{white}$PROMPT_tri_right%f %n %k%K{033}%F{027}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #username
+				fi
 
 				#SPROMPT="zsh: correct '%R' to '%r' [nyae]? " #default prompt
 				SPROMPT="zsh: correct '%R' to '%r' [nyae]? "
