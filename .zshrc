@@ -156,7 +156,7 @@
 					#PROMPT="[%F{cyan}%~%f] %# " #don't include username
 				fi
 
-				#SPROMPT="zsh: correct '%R' to '%r' [nyae]? " #default prompt
+			#ERROR CORRECTION PROMPT SPROMPT
 				SPROMPT="zsh: correct '%R' to '%r' [nyae]? "
 
 			#RIGHT PROMPT RPROMPT
@@ -198,8 +198,9 @@
 				#"https://stackoverflow.com/questions/69687223/how-to-colour-git-branch-name-in-zsh-prompt/69700413#69700413"
 				#"https://stackoverflow.com/questions/36192523/zsh-prompt-customization"
 				autoload -Uz add-zsh-hook
-				pwdprecmd()
+				coolFunctionNameForMyPrecmd()
 				{
+					## PWD precmd
 					if [ "$HOME" != "$PWD" ]; then
 						local pwdprecmdtemp=$(echo $PWD | sed "s|"$HOME"|\~|")
 
@@ -212,30 +213,59 @@
 						psvar[1]="~"
 						psvar[2]=""
 					fi
-				}
-				add-zsh-hook precmd pwdprecmd
 
+					## GIT DIRECTORY DETECT precmd
+						#gitDirectoryDetectStatusColor='160' #red
+						#gitDirectoryDetectStatusColor='071' #green
+					if [ -d './.git' ]; then
+						if [ -z "$(git status --porcelain)" ]; then
+							psvar[3]='git psvar color dummy text'
+							psvar[4]=''
+						else
+							psvar[3]=''
+							local gitShortStats="$(git diff --shortstat \
+								| sed 's/, //g' \
+								| sed 's/ files* changed/  /' \
+								| sed 's/ insertions*(+)/+ /' \
+								| sed 's/ deletions*(-)/- /')"
+							psvar[4]="$gitShortStats"
+						fi
+						psvar[5]="  $(git branch --show-current)"
+					else
+						psvar[5]=''
+					fi
+				}
+				add-zsh-hook precmd coolFunctionNameForMyPrecmd
+
+				### old prompt bling saves: ###
+					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{027}%F{white}$PROMPT_tri_right%f %n %k%K{234}%F{027}$PROMPT_tri_right%F{white}%B SSH %b%f%k%K{033}%F{234}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #username
+					#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
+					#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{027}%F{234}$PROMPT_tri_right%f %v %k%F{027}$PROMPT_tri_right%f " #no username and archlinux logo
+					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username and archlinux logo
+					#PROMPT="%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username no archlinux logo
+					#PROMPT="[%F{green}%~%f] %# " #don't include username
+					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username
+					#PROMPT_PREFIX="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f"
+					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{027}%F{white}$PROMPT_tri_right%f %n %k%K{033}%F{027}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #username
+					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{234}%F{white}$PROMPT_tri_right%F{white}%B SSH %b%f%k%K{033}%F{234}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username
 
 				if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_TTY" ]; then
 					#pstree -s $$
 					#SSH_CLIENT
 					#SSH_CONNECTION
 					#SSH_TTY
-
-					PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{234}%F{white}$PROMPT_tri_right%F{white}%B SSH %b%f%k%K{033}%F{234}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username
-					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{027}%F{white}$PROMPT_tri_right%f %n %k%K{234}%F{027}$PROMPT_tri_right%F{white}%B SSH %b%f%k%K{033}%F{234}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #username
+					#psvar[6]='ssh psvar dummy text'
+					PROMPT_PREFIX_SSH="%K{234}%F{white}$PROMPT_tri_right%F{white}%B SSH %b%f%k%(5V.%(3V.%K{022}.%K{213}).%K{033})%F{234}$PROMPT_tri_right%f"
 				else
-					#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
-					#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{027}%F{234}$PROMPT_tri_right%f %v %k%F{027}$PROMPT_tri_right%f " #no username and archlinux logo
-					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username and archlinux logo
-					#PROMPT="%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username no archlinux logo
-					#PROMPT="[%F{green}%~%f] %# " #don't include username
-
-					PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username
-					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{027}%F{white}$PROMPT_tri_right%f %n %k%K{033}%F{027}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #username
+					#psvar[6]=''
+					PROMPT_PREFIX_SSH="%(5V.%(3V.%K{022}.%K{213}).%K{033})%F{white}$PROMPT_tri_right%f"
 				fi
+				# as of Sunday, May 18, 2025, 00:07:33, holy crappa this is hot garbage of a mess
+				PROMPT_PREFIX_GIT="%(5V.%(3V..%(4V.%4v%F{213}%K{124}$PROMPT_tri_right%f.  %F{213}%K{124}$PROMPT_tri_right%f))%5v %K{033}%(3V.%F{022}.%F{124})$PROMPT_tri_right%f.)"
 
-				#SPROMPT="zsh: correct '%R' to '%r' [nyae]? " #default prompt
+				PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k$PROMPT_PREFIX_SSH$PROMPT_PREFIX_GIT %v%B%2v%b %k%F{033}$PROMPT_tri_right%f "
+
+			#ERROR CORRECTION PROMPT SPROMPT
 				SPROMPT="zsh: correct '%R' to '%r' [nyae]? "
 
 			#RIGHT PROMPT RPROMPT
