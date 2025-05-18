@@ -1,4 +1,4 @@
-# personal zshrc as of Thursday, January 30, 2025, 10:58:59
+# personal zshrc as of Sunday, May 18, 2025, 00:17:07
 
 use at own risk.
 It's a shell file.
