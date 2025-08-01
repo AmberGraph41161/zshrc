@@ -191,9 +191,17 @@
 			#LEFT PROMPT
 				PROMPT_tri_left=""
 				PROMPT_tri_right=""
+				#PROMPT_tri_left_inverse=""
+				#PROMPT_tri_right_inverse=""
 				PROMPT_check_mark=""
 				PROMPT_gear=""
 				PROMPT_archlinux="󰣇"
+				PROMPT_root_indicator=""
+				if [ "$(whoami)" = "root" ]; then
+					# PROMPT_root_indicator="!  "
+					#PROMPT_root_indicator="%K{009}%F{white} # %k%f%F{009}%K{white}$PROMPT_tri_right%k%f" #salmon pink
+					PROMPT_root_indicator="%K{160}%F{white} # %k%f%F{160}%K{white}$PROMPT_tri_right%k%f" #bright neon red
+				fi
 
 				#"https://stackoverflow.com/questions/69687223/how-to-colour-git-branch-name-in-zsh-prompt/69700413#69700413"
 				#"https://stackoverflow.com/questions/36192523/zsh-prompt-customization"
@@ -263,7 +271,7 @@
 				# as of Sunday, May 18, 2025, 00:07:33, holy crappa this is hot garbage of a mess
 				PROMPT_PREFIX_GIT="%(5V.%(3V..%(4V.%4v%F{213}%K{124}$PROMPT_tri_right%f.  %F{213}%K{124}$PROMPT_tri_right%f))%5v %K{033}%(3V.%F{022}.%F{124})$PROMPT_tri_right%f.)"
 
-				PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k$PROMPT_PREFIX_SSH$PROMPT_PREFIX_GIT %v%B%2v%b %k%F{033}$PROMPT_tri_right%f "
+				PROMPT="$PROMPT_root_indicator%K{white}%F{234} $PROMPT_archlinux %f%k$PROMPT_PREFIX_SSH$PROMPT_PREFIX_GIT %v%B%2v%b %k%F{033}$PROMPT_tri_right%f "
 
 			#ERROR CORRECTION PROMPT SPROMPT
 				SPROMPT="zsh: correct '%R' to '%r' [nyae]? "
