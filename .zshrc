@@ -17,12 +17,12 @@
 		alias zshreload="source ~/.zshrc"
 
 	#Are You Sure What You Are About To Do Is Not Stupid?
-		alias rm="rm -iv" #prompt before removal, verbose
-		alias mv="mv -iv" #prompt before removal, verbose
-		alias mkdir="mkdir -pv" #create parent directories if not existing, verbose
-		alias rmdir="rmdir -pv" #remove parent directories if existing, verbose
-		alias cp="cp -iv" #prompt before overwrite, verbose
-		alias ln="ln -iv" #prompt before doing link stuff just in case
+		alias rm="rm -iv"
+		alias mv="mv -iv"
+		alias mkdir="mkdir -v"
+		alias rmdir="rmdir -v"
+		alias cp="cp -iv"
+		alias ln="ln -iv"
 	
 	#Useful
 		alias ls="ls --color=auto"
