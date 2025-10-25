@@ -1,20 +1,12 @@
 ### CUSTOM ALIASES ###
-	#wayland crap
-		alias forcexwayland="env -u WAYLAND_DISPLAY --" # so I can get fcitx crap to work
-	
-	#wine crap
-		alias kakao="wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Kakao/KakaoTalk/KakaoTalk.exe"
-
 	#NVIM EVERYTHING!!!!
 		alias edit="nvim"
-		alias nvimzsh="nvim ~/.zshrc"
 		alias nvims="nvim -S session.vim"
-		alias bruh="tmux -u2" #"-u" flag unsures that UTF-8 or UNICODE characters print out
+		alias bruh="tmux -u"
 
-		alias ok="nvim ~/.zshrc"
-		alias no="source ~/.zshrc"
-		alias reloadzsh="source ~/.zshrc"
-		alias zshreload="source ~/.zshrc"
+		alias ok="nvim ~/.config/zsh/.zshrc"
+		alias reloadzsh="source ~/.config/zsh/.zshrc && source ~/.zshenv"
+		alias zshreload="source ~/.config/zsh/.zshrc && source ~/.zshenv"
 
 	#Are You Sure What You Are About To Do Is Not Stupid?
 		alias rm="rm -iv"
@@ -36,38 +28,22 @@
 		function cpfzf() { cp -iv "$(fzf)" "$1" }
 		function mvfzf() { mv -iv "$(fzf)" "$1" }
 
-		#deprecated
-		#function cdfzf()
-		#{
-		#	local filepath=$(fzf)
-		#	local truncatethispart=$(echo $filepath | grep -o -- '/[^/]*$')
-		#	filepath="${filepath%$truncatethispart}/"
-
-		#	cd $filepath
-
-		#	#paranoia
-		#	unset filepath
-		#	unset truncatethispart
-		#}
 		function cdfzf()
 		{
-			cd ${$(fzf)%/*}
+			cd "${$(fzf)%/*}"
 		}
 
 	#CD Shortcuts
-		alias cdnvim="cd ~/.config/nvim" #easier and faster to type letters and not "special chars" ya know?
-		alias cddiscord="cd /opt/discord/resources/" #faster way to update discord idk
-		alias cdmovies="cd $HOME/STUFF/MyPhotos/Saves/Movies" #MOVIE TIME YOOOOO
-		alias cdmemes="cd $HOME/STUFF/MyPhotos/MEMES/"
+		alias cdnvim="cd ~/.config/nvim"
 		alias cdalacritty="cd ~/.config/alacritty/"
 		alias cdcoding="cd $HOME/coding/projects/"
 		alias cdytdl="cd $HOME/ytdl/"
-		alias cdroms="cd $HOME/roms/"
 		alias cdhypr="cd $HOME/.config/hypr/"
 
 	#Shortcut Commands To Long Bois
-		alias yt-dlpAUDIO="yt-dlp --extract-audio --audio-format mp3 --write-sub --embed-thumbnail --embed-metadata --retries 3" #personal preferred settings
-		alias yt-dlpVIDEO="yt-dlp --format mp4 --embed-metadata --retries 3" #personal preferred settings
+		alias yt-dlpAUDIO="yt-dlp --extract-audio --audio-format mp3 --write-sub --embed-thumbnail --embed-metadata --retries 3"
+		alias yt-dlpVIDEO="yt-dlp --format mp4 --embed-metadata --retries 3"
+		alias yt-dlpINTERACTIVE="yt-dlp -f - --write-sub --embed-thumbnail --embed-metadata --retries 3"
 
 		function videoplusaudio()
 		{
@@ -118,7 +94,7 @@
 	#setopt SHARE_HISTORY #share history across different/multiple zsh sessions open #will add the weird numba thingies to history that disappear after reloading user
 	SAVEHIST=100000
 	HISTSIZE=100000
-	HISTFILE=~/.zhistory
+	HISTFILE=~/.config/zsh/.zhistory
 	function clearhistory() { HISTSIZE=0; HISTSIZE=100000; }
 
 	REPORTTIME=1 #seconds
@@ -225,7 +201,8 @@
 					## GIT DIRECTORY DETECT precmd
 						#gitDirectoryDetectStatusColor='160' #red
 						#gitDirectoryDetectStatusColor='071' #green
-					if [ -d './.git' ]; then
+					#if [ -d './.git' ]; then
+					if git rev-parse --git-dir>/dev/null 2>&1; then
 						if [ -z "$(git status --porcelain)" ]; then
 							psvar[3]='git psvar color dummy text'
 							psvar[4]=''
@@ -244,18 +221,6 @@
 					fi
 				}
 				add-zsh-hook precmd coolFunctionNameForMyPrecmd
-
-				### old prompt bling saves: ###
-					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{027}%F{white}$PROMPT_tri_right%f %n %k%K{234}%F{027}$PROMPT_tri_right%F{white}%B SSH %b%f%k%K{033}%F{234}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #username
-					#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{033}%F{234}$PROMPT_tri_right%f%k%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username and archlinux logo
-					#PROMPT="%K{234}%F{white} $PROMPT_archlinux %f%k%K{027}%F{234}$PROMPT_tri_right%f %v %k%F{027}$PROMPT_tri_right%f " #no username and archlinux logo
-					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username and archlinux logo
-					#PROMPT="%K{033}%F{white} %B%n%b %f%k%K{027}%F{033}$PROMPT_tri_right%f %~ %k%F{027}$PROMPT_tri_right%f " #include username no archlinux logo
-					#PROMPT="[%F{green}%~%f] %# " #don't include username
-					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username
-					#PROMPT_PREFIX="%K{white}%F{234} $PROMPT_archlinux %f%k%K{033}%F{white}$PROMPT_tri_right%f"
-					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{027}%F{white}$PROMPT_tri_right%f %n %k%K{033}%F{027}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #username
-					#PROMPT="%K{white}%F{234} $PROMPT_archlinux %f%k%K{234}%F{white}$PROMPT_tri_right%F{white}%B SSH %b%f%k%K{033}%F{234}$PROMPT_tri_right%f %v%B%2v%b %k%F{033}$PROMPT_tri_right%f " #no username
 
 				if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_CONNECTION" ] || [ -n "$SSH_TTY" ]; then
 					#pstree -s $$
@@ -357,7 +322,6 @@
 
 	#history search completion
 		eval "$(fzf --zsh)"
-		#bindkey -M isearch "^r" history-incremental-search-backward
 		bindkey -M isearch "^r" history-incremental-search-backward
 
 	#expand alias
@@ -373,32 +337,3 @@
 		export LESS_TERMCAP_ue=$'\E[0m'
 		export LESS_TERMCAP_us=$'\E[01;36m'
 		export LESS=-R
-
-							### Options section
-							#setopt correct                                                  # Auto correct mistakes
-							#setopt extendedglob                                             # Extended globbing. Allows using regular expressions with *
-							#setopt nocaseglob                                               # Case insensitive globbing
-							#setopt rcexpandparam                                            # Array expension with parameters
-							#setopt nocheckjobs                                              # Don't warn about running processes when exiting
-							#setopt numericglobsort                                          # Sort filenames numerically when it makes sense
-							#setopt nobeep                                                   # No beep
-							#setopt appendhistory                                            # Immediately append history instead of overwriting
-							#setopt histignorealldups                                        # If a new command is a duplicate, remove the older one
-							#setopt autocd                                                   # if only directory path is entered, cd there.
-							#setopt inc_append_history                                       # save commands are added to the history immediately, otherwise only when shell exits.
-							#setopt histignorespace                                          # Don't save commands that start with space
-							#
-							#zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' # Case insensitive tab completion
-							#zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"         # Colored completion (different colors for dirs/files/etc)
-							#zstyle ':completion:*' rehash true                              # automatically find new executables in path
-							#zstyle ':completion:*' menu select                              # Highlight menu selection
-							## Speed up completions
-							#zstyle ':completion:*' accept-exact '*(N)'
-							#zstyle ':completion:*' use-cache on
-							#zstyle ':completion:*' cache-path ~/.zsh/cache
-							#HISTFILE=~/.zhistory
-							#HISTSIZE=10000
-							#SAVEHIST=10000
-							##export EDITOR=/usr/bin/nano
-							##export VISUAL=/usr/bin/nano
-							#WORDCHARS=${WORDCHARS//\/[&.;]}                                 # Don't consider certain characters part of the word
