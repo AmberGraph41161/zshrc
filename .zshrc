@@ -2,7 +2,6 @@
 	#NVIM EVERYTHING!!!!
 		alias edit="nvim"
 		alias nvims="nvim -S session.vim"
-		alias bruh="tmux -u"
 
 		alias ok="nvim ~/.config/zsh/.zshrc"
 		alias reloadzsh="source ~/.config/zsh/.zshrc && source ~/.zshenv"
@@ -35,14 +34,13 @@
 
 	#CD Shortcuts
 		alias cdnvim="cd ~/.config/nvim"
-		alias cdalacritty="cd ~/.config/alacritty/"
 		alias cdcoding="cd $HOME/coding/projects/"
 		alias cdytdl="cd $HOME/ytdl/"
 		alias cdhypr="cd $HOME/.config/hypr/"
 
 	#Shortcut Commands To Long Bois
-		alias yt-dlpAUDIO="yt-dlp --extract-audio --audio-format mp3 --write-sub --embed-thumbnail --embed-metadata --retries 3"
-		alias yt-dlpVIDEO="yt-dlp --format mp4 --embed-metadata --retries 3"
+		alias yt-dlpAUDIO="yt-dlp --extract-audio -t mp3 --write-sub --embed-thumbnail --embed-metadata --retries 3"
+		alias yt-dlpVIDEO="yt-dlp -t mp4 --embed-metadata --retries 3"
 		alias yt-dlpINTERACTIVE="yt-dlp -f - --write-sub --embed-thumbnail --embed-metadata --retries 3"
 
 		function videoplusaudio()
@@ -83,10 +81,19 @@
 		alias shredshred="shred -fuzv"
 		alias shredshredshred="shred -fuzvn10"
 
-	#rice long bois
-		alias pipes="pipes.sh -p 10 -t 1 -r 10000 -R"
+	#application aliases and more
 		alias music="ncmpcpp"
-		alias pokemon="krabby random | sed \"1,1d\""
+		alias bruh="tmux -u"
+		function mail()
+		{
+			if [ "$1" = "sync" ]; then
+				mbsync -Va && notmuch new
+				return
+			fi
+			#as of Friday, August 21, 2026, 23:17:40
+			#dont forget that NOTMUCH_DATABASE and NOTMUCH_CONFIG are set by ~/.zshenv
+			mbsync -Va && notmuch new && aerc
+		}
 
 ### BASIC OPTIONS ###
 	setopt HIST_APPEND #APPEND_HISTORY
@@ -95,10 +102,15 @@
 	SAVEHIST=100000
 	HISTSIZE=100000
 	HISTFILE=~/.config/zsh/.zhistory
-	function clearhistory() { HISTSIZE=0; HISTSIZE=100000; }
 
 	REPORTTIME=1 #seconds
-	REPORTMEMORY=1024 #kilobytes
+	#REPORTMEMORY=1024 #kilobytes
+	#REPORTMEMORY=5120 #kilobytes
+	#REPORTMEMORY=6144 #kilobytes
+	#REPORTMEMORY=7168 #kilobytes
+	#REPORTMEMORY=8192 #kilobytes
+	#REPORTMEMORY=9216 #kilobytes
+	#REPORTMEMORY=10240 #kilobytes
 
 	KEYTIMEOUT=1
 
@@ -209,10 +221,7 @@
 						else
 							psvar[3]=''
 							local gitShortStats="$(git diff --shortstat \
-								| sed 's/, //g' \
-								| sed 's/ files* changed/  /' \
-								| sed 's/ insertions*(+)/+ /' \
-								| sed 's/ deletions*(-)/- /')"
+								| sed 's/, //g; s/ files* changed/  /; s/ insertions*(+)/+ /; s/ deletions*(-)/- /')"
 							psvar[4]="$gitShortStats"
 						fi
 						psvar[5]="  $(git branch --show-current)"
